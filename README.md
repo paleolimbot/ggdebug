@@ -44,3 +44,13 @@ ggundebug(ggplot)
 # stop debugging all functions
 ggundebug_all()
 ```
+
+You can also use this package to install specific versions of ggplot2
+from GitHub that link back to the source:
+
+``` r
+# gginstall("cran/ggplot2")
+# gginstall("tidyverse/ggplot2@v3.1.1")
+(ggbrowse(FacetWrap$map_data))
+#> [1] "https://github.com/tidyverse/ggplot2/blob/1f6f0cb/R/facet-wrap.r#L181-L214"
+```

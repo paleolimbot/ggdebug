@@ -10,10 +10,16 @@ LazyData: true
 Imports: 
     rlang (>= 0.1.2),
     withr,
-    digest
+    digest,
+    sessioninfo,
+    git2r,
+    tibble,
+    purrr,
+    ggplot2,
+    remotes,
+    stringr
 Suggests: 
-    roxygen2,
-    ggplot2
+    roxygen2
 RoxygenNote: 6.1.1
 URL: https://github.com/paleolimbot/ggdebug
 BugReports: https://github.com/paleolimbot/ggdebug/issues
