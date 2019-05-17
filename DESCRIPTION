@@ -1,0 +1,17 @@
+Package: ggdebug
+Title: Debug functions and ggproto methods in ggplot2
+Version: 0.0.0.9000
+Authors@R: person("Dewey", "Dunnington", email = "dewey@fishandwhistle.net", role = c("aut", "cre"))
+Description: Debugs functions and ggproto methods in ggplot2.
+Depends: R (>= 3.1.0)
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    rlang (>= 0.1.2),
+    withr,
+    digest
+Suggests: 
+    roxygen2,
+    ggplot2
+RoxygenNote: 6.1.1
