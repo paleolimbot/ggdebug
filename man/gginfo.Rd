@@ -27,7 +27,7 @@ gginstall(repo = "tidyverse/ggplot2", ...,
 
 \item{path}{A path to a file within ggplot2}
 
-\item{repo}{A repository and reference, like \code{tidyverse/ggplot2@master}}
+\item{repo}{A repository and reference, like \code{tidyverse/ggplot2} or \code{tidyverse/ggplot2@v3.1.1}.}
 
 \item{INSTALL_opts, ...}{Options for install. Using --with-keep.source allows
 the functions in this section to find the GitHub repo from whence

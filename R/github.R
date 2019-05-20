@@ -3,7 +3,7 @@
 #'
 #' @param include_base,dependencies See [sessioninfo::package_info()]
 #' @param path A path to a file within ggplot2
-#' @param repo A repository and reference, like `tidyverse/ggplot2@master`
+#' @param repo A repository and reference, like `tidyverse/ggplot2` or `tidyverse/ggplot2@v3.1.1`.
 #' @param INSTALL_opts,... Options for install. Using --with-keep.source allows
 #'   the functions in this section to find the GitHub repo from whence
 #'   ggplot2 came.
