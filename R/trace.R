@@ -93,7 +93,7 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), a
 
     # apply on_enter and on_exit or remove
     if(action == "trace") {
-      new_fun <- traced_function(inner_fun, on_enter, on_exit)
+      new_fun <- traced_function(inner_fun, on_enter, on_exit, .fun = fun_label)
     } else {
       new_fun <- untraced_function(inner_fun)
     }
@@ -107,7 +107,7 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), a
 
     # apply on_enter and on_exit
     if(action == "trace") {
-      new_fun <- traced_function(fun, on_enter, on_exit)
+      new_fun <- traced_function(fun, on_enter, on_exit, .fun = fun_label)
     } else {
       new_fun <- untraced_function(fun)
     }
@@ -121,10 +121,15 @@ untrace_and_unregister <- function(fun) {
   trace_and_register(!!enquo(fun), action = "untrace")
 }
 
-traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL)) {
+traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), .fun = ".fun") {
   if(is_traced_function(fun)) {
     fun <- untraced_function(fun)
   }
+
+  enter_exit_env <- new.env(parent = emptyenv())
+  enter_exit_env$on_enter <- on_enter
+  enter_exit_env$on_exit <- on_exit
+  enter_exit_env$.fun <- .fun
 
   new_fun <- function_with_bracket(fun)
   fun_body <- body(new_fun)
@@ -133,8 +138,14 @@ traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL)) {
   fun_body[[length_body + 1]] <- fun_body[[length_body]]
   fun_body[[length_body + 2]] <- fun_body[[length_body]]
   fun_body[3:(length_body + 1)] <- fun_body[2:length_body]
-  fun_body[[2]] <- substitute(rlang::eval_tidy(on_enter), environment())
-  fun_body[[length_body + 1]] <- substitute(on.exit(rlang::eval_tidy(on_exit), add = TRUE), environment())
+  fun_body[[2]] <- substitute(
+    rlang::eval_tidy(on_enter),
+    enter_exit_env
+  )
+  fun_body[[length_body + 1]] <- substitute(
+    on.exit(rlang::eval_tidy(on_exit), add = TRUE),
+    enter_exit_env
+  )
 
   body(new_fun) <- fun_body
 
