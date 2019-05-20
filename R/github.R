@@ -106,7 +106,13 @@ gginstall <- function(repo = "tidyverse/ggplot2", ..., INSTALL_opts = "--with-ke
 
 repo_split <- function(repo) {
   parts <- stringr::str_split(repo, "@")[[1]]
-  c(repo = parts[1], ref = parts[2])
+  if(is.na(parts[2])) {
+    ref <- "master"
+  } else {
+    ref <- parts[2]
+  }
+
+  c(repo = parts[1], ref = ref)
 }
 
 #' @importFrom purrr %||%
