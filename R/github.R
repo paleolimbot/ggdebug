@@ -26,7 +26,7 @@
 #' ggbrowse(aes)
 #' ggbrowse(FacetWrap$map_data)
 #'
-gginfo <- function(include_base = FALSE, dependencies = NA) {
+gginfo <- function(include_base = FALSE, dependencies = FALSE) {
   sessioninfo::package_info("ggplot2", include_base = include_base, dependencies = dependencies)
 }
 

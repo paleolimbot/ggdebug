@@ -9,7 +9,7 @@
 \alias{gginstall}
 \title{Information about the currently installed version of ggplot2}
 \usage{
-gginfo(include_base = FALSE, dependencies = NA)
+gginfo(include_base = FALSE, dependencies = FALSE)
 
 ggrepo()
 
