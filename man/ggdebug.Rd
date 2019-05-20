@@ -13,12 +13,12 @@ ggundebug(...)
 ggundebug_all(...)
 }
 \arguments{
-\item{...}{One or more functions or [ggplot2::ggproto()] methods (see [ggdebug_one()])}
+\item{...}{One or more functions or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} methods (see \code{\link[=ggdebug_one]{ggdebug_one()}})}
 }
 \description{
-Debugs functions or [ggplot2::ggproto()] methods in ggplot2. Expressions are
+Debugs functions or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} methods in ggplot2. Expressions are
 evaluated in the ggplot2 namespace, so they can be unexported functions as well.
-Use `undebug_all()` to clear all debugged functions. Note that ggplot2 need not
+Use \code{undebug_all()} to clear all debugged functions. Note that ggplot2 need not
 be attached to use these functions.
 }
 \examples{

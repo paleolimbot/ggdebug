@@ -10,9 +10,9 @@ ggdebug_one(fun, ...)
 ggundebug_one(fun, ...)
 }
 \arguments{
-\item{fun}{A function or [ggplot2::ggproto()] method.}
+\item{fun}{A function or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} method.}
 
-\item{...}{Passed to [debug()], or [debugonce()]}
+\item{...}{Passed to \code{\link[=debug]{debug()}}, or \code{\link[=debugonce]{debugonce()}}}
 }
 \description{
 Debug one ggplot2 function

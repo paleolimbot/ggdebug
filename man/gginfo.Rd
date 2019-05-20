@@ -23,11 +23,11 @@ gginstall(repo = "tidyverse/ggplot2", ...,
   INSTALL_opts = "--with-keep.source")
 }
 \arguments{
-\item{include_base, dependencies}{See [sessioninfo::package_info()]}
+\item{include_base, dependencies}{See \code{\link[sessioninfo:package_info]{sessioninfo::package_info()}}}
 
 \item{path}{A path to a file within ggplot2}
 
-\item{repo}{A repository and reference, like `tidyverse/ggplot2@master`}
+\item{repo}{A repository and reference, like \code{tidyverse/ggplot2@master}}
 
 \item{INSTALL_opts, ...}{Options for install. Using --with-keep.source allows
 the functions in this section to find the GitHub repo from whence
