@@ -113,3 +113,28 @@ ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
 #> ---- eval_facets()
 gguntrace_all()
 ```
+
+## Helpers
+
+More than likely, you’d like to debug an entire ggproto class. For this
+you can use `ggmethods()` and the splice to debug many functions at
+once.
+
+``` r
+ggtrace_tree(!!!ggmethods(FacetWrap))
+ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
+#> -- Facet$setup_params()
+#> -- Facet$setup_data()
+#> -- FacetWrap$compute_layout()
+#> -- FacetWrap$map_data()
+#> -- Facet$init_scales()
+#> -- Facet$init_scales()
+#> -- Facet$train_scales()
+#> -- Facet$train_scales()
+#> -- Facet$finish_data()
+#> -- Facet$draw_back()
+#> -- Facet$draw_front()
+#> -- FacetWrap$draw_panels()
+#> -- Facet$draw_labels()
+gguntrace_all()
+```
