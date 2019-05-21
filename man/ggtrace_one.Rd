@@ -5,7 +5,8 @@
 \alias{gguntrace_one}
 \title{Trace one ggplot2 function}
 \usage{
-ggtrace_one(fun, on_enter = quo(NULL), on_exit = quo(NULL))
+ggtrace_one(fun, on_enter = quo(NULL), on_exit = quo(NULL),
+  .trace = new.env(parent = emptyenv()))
 
 gguntrace_one(fun)
 }
@@ -15,6 +16,8 @@ gguntrace_one(fun)
 \item{on_enter}{A \code{\link[rlang:quo]{rlang::quo()}} to evaluate on entering the \code{fun}.}
 
 \item{on_exit}{A \code{\link[rlang:quo]{rlang::quo()}} to evaluate on exiting the \code{fun}.}
+
+\item{.trace}{An environment that will be available to \code{on_enter} and \code{on_exit} as \code{.trace}.}
 }
 \description{
 Trace one ggplot2 function

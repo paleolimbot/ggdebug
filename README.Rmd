@@ -5,6 +5,7 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
+library(ggplot2)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -36,7 +37,7 @@ If you can load the package, you're all set!
 library(ggdebug)
 ```
 
-## Example
+## Debugging
 
 Use `ggdebug()` to debug functions (they can be exported, non-exported, or `ggproto` methods), use `ggundebug()` to stop debugging specific functions, and use `ggundebug_all()` to stop debugging altogether.
 
@@ -58,3 +59,27 @@ You can also use this package to install specific versions of ggplot2 from GitHu
 # gginstall("tidyverse/ggplot2@v3.1.1")
 (ggbrowse(FacetWrap$map_data))
 ```
+
+## Tracing
+
+Use `ggtrace()` (and family) to evaluate abitrary code as functions enter an exit. `ggtrace_tree()` and `ggtrace_stack()` are useful shortcut methods.
+
+```{r, fig.show='hide'}
+ggtrace(FacetWrap$map_data, on_enter = quo(print(data)), on_exit = quo(print(data)))
+ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
+gguntrace(FacetWrap$map_data)
+```
+
+
+```{r, fig.show='hide'}
+ggtrace_tree(
+  FacetWrap$map_data, 
+  FacetWrap$compute_layout,
+  combine_vars,
+  eval_facets
+)
+
+ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
+gguntrace_all()
+```
+

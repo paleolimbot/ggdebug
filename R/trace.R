@@ -13,13 +13,13 @@
 #' @export
 #' @importFrom rlang !! quo
 #'
-ggtrace <- function(..., on_enter = quo(NULL), on_exit = quo(NULL)) {
+ggtrace <- function(..., on_enter = quo(NULL), on_exit = quo(NULL), .trace = new.env(parent = emptyenv())) {
   exprs <- rlang::quos(...)
-  lapply(exprs, function(x) ggtrace_one(!!x, on_enter = on_enter, on_exit = on_exit))
+  lapply(exprs, function(x) ggtrace_one(!!x, on_enter = on_enter, on_exit = on_exit, .trace = .trace))
   invisible()
 }
 
-#' @rdname ggdebug
+#' @rdname ggtrace
 #' @export
 gguntrace <- function(...) {
   exprs <- rlang::quos(...)
@@ -27,29 +27,76 @@ gguntrace <- function(...) {
   invisible()
 }
 
-#' @rdname ggdebug
+#' @rdname ggtrace
 #' @export
 gguntrace_all <- function(...) {
   lapply(names(current_traces), function(x) untrace_and_unregister(!!current_traces[[x]]))
   invisible()
 }
 
+#' @rdname ggtrace
+#' @export
+ggtrace_tree <- function(...) {
+  ggtrace(
+    ...,
+    on_enter = quo(ggtrace_tree_enter(.debug)),
+    on_exit = quo(ggtrace_tree_exit(.debug))
+  )
+}
+
+#' @rdname ggtrace
+#' @export
+ggtrace_stack <- function(...) {
+  ggtrace(
+    ...,
+    on_enter = quo(ggtrace_stack_enter(.debug))
+  )
+}
+
+ggtrace_stack_enter <- function(.debug) {
+  message("-- ", .debug$.fun, "()")
+  print(rlang::trace_back())
+}
+
+ggtrace_tree_enter <- function(.debug) {
+  .trace <- .debug$.trace
+  if("depth" %in% names(.trace)) {
+    .trace$depth <- .trace$depth + 1
+  } else {
+    .trace$depth <- 1
+  }
+
+  spaces <- paste0(rep("--", max(.trace$depth, 0)), collapse = "")
+  message(spaces, " ", .debug$.fun, "()")
+}
+
+ggtrace_tree_exit <- function(.debug) {
+  .trace <- .debug$.trace
+
+  if("depth" %in% names(.trace)) {
+    .trace$depth <- .trace$depth - 1
+  } else {
+    .trace$depth <- 0
+  }
+}
 
 #' Trace one ggplot2 function
 #'
 #' @inheritParams ggdebug_one
 #' @param on_enter A [rlang::quo()] to evaluate on entering the `fun`.
 #' @param on_exit A [rlang::quo()] to evaluate on exiting the `fun`.
+#' @param .trace An environment that will be available to `on_enter` and `on_exit` as `.trace`.
 #'
 #' @export
 #'
 #' @importFrom rlang quo
 #'
-ggtrace_one <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL)) {
+ggtrace_one <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), .trace = new.env(parent = emptyenv())) {
   trace_and_register(
     !!enquo(fun),
     on_enter = rlang::as_quosure(on_enter),
-    on_exit = rlang::as_quosure(on_exit)
+    on_exit = rlang::as_quosure(on_exit),
+    .trace = .trace
   )
 }
 
@@ -64,7 +111,8 @@ gguntrace_one <- function(fun) {
 
 current_traces <- new.env(parent = emptyenv())
 
-trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), action = "trace") {
+trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
+                               .trace = new.env(parent = emptyenv()), action = "trace") {
   action <- match.arg(action, c("trace", "untrace"))
 
   fun_quo <- enquo(fun)
@@ -93,7 +141,7 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), a
 
     # apply on_enter and on_exit or remove
     if(action == "trace") {
-      new_fun <- traced_function(inner_fun, on_enter, on_exit, .fun = fun_label)
+      new_fun <- traced_function(inner_fun, on_enter, on_exit, .fun = fun_label, .trace = .trace)
     } else {
       new_fun <- untraced_function(inner_fun)
     }
@@ -107,13 +155,16 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), a
 
     # apply on_enter and on_exit
     if(action == "trace") {
-      new_fun <- traced_function(fun, on_enter, on_exit, .fun = fun_label)
+      new_fun <- traced_function(fun, on_enter, on_exit, .fun = fun_label, .trace = .trace)
     } else {
       new_fun <- untraced_function(fun)
     }
 
-    # reassign the function
+    # reassign the function (need to unlock namespace first)
+    locked_env <- environmentIsLocked(function_env)
+    if(locked_env) unlockBinding(fun_name, function_env)
     assign(fun_name, new_fun, envir = function_env)
+    if(locked_env) lockBinding(fun_name, function_env)
   }
 }
 
@@ -121,7 +172,8 @@ untrace_and_unregister <- function(fun) {
   trace_and_register(!!enquo(fun), action = "untrace")
 }
 
-traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), .fun = ".fun") {
+traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
+                            .fun = ".fun", .trace = new.env(parent = emptyenv())) {
   if(is_traced_function(fun)) {
     fun <- untraced_function(fun)
   }
@@ -129,7 +181,11 @@ traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), .fun
   enter_exit_env <- new.env(parent = emptyenv())
   enter_exit_env$on_enter <- on_enter
   enter_exit_env$on_exit <- on_exit
-  enter_exit_env$.fun <- .fun
+  enter_exit_env$create_mask <- function(env = rlang::caller_env()) {
+    mask <- rlang::as_data_mask(env)
+    mask$.debug <- rlang::as_data_pronoun(list(.fun = .fun, .trace = .trace))
+    mask
+  }
 
   new_fun <- function_with_bracket(fun)
   fun_body <- body(new_fun)
@@ -139,11 +195,11 @@ traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL), .fun
   fun_body[[length_body + 2]] <- fun_body[[length_body]]
   fun_body[3:(length_body + 1)] <- fun_body[2:length_body]
   fun_body[[2]] <- substitute(
-    rlang::eval_tidy(on_enter),
+    rlang::eval_tidy(on_enter, data = create_mask()),
     enter_exit_env
   )
   fun_body[[length_body + 1]] <- substitute(
-    on.exit(rlang::eval_tidy(on_exit), add = TRUE),
+    on.exit(rlang::eval_tidy(on_exit, data = create_mask()), add = TRUE),
     enter_exit_env
   )
 

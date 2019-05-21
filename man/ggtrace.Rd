@@ -2,9 +2,22 @@
 % Please edit documentation in R/trace.R
 \name{ggtrace}
 \alias{ggtrace}
+\alias{gguntrace}
+\alias{gguntrace_all}
+\alias{ggtrace_tree}
+\alias{ggtrace_stack}
 \title{Trace ggplot2 functions}
 \usage{
-ggtrace(..., on_enter = quo(NULL), on_exit = quo(NULL))
+ggtrace(..., on_enter = quo(NULL), on_exit = quo(NULL),
+  .trace = new.env(parent = emptyenv()))
+
+gguntrace(...)
+
+gguntrace_all(...)
+
+ggtrace_tree(...)
+
+ggtrace_stack(...)
 }
 \arguments{
 \item{...}{One or more functions or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} methods (see \code{\link[=ggtrace_one]{ggtrace_one()}})}
@@ -12,6 +25,8 @@ ggtrace(..., on_enter = quo(NULL), on_exit = quo(NULL))
 \item{on_enter}{A \code{\link[rlang:quo]{rlang::quo()}} to evaluate on entering the \code{fun}.}
 
 \item{on_exit}{A \code{\link[rlang:quo]{rlang::quo()}} to evaluate on exiting the \code{fun}.}
+
+\item{.trace}{An environment that will be available to \code{on_enter} and \code{on_exit} as \code{.trace}.}
 }
 \description{
 Traces functions or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} methods in ggplot2. Expressions are
