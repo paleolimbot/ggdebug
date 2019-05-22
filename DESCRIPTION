@@ -23,8 +23,11 @@ Imports:
     remotes,
     stringr
 Suggests: 
-    roxygen2
+    roxygen2,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/paleolimbot/ggdebug
 BugReports: https://github.com/paleolimbot/ggdebug/issues
+VignetteBuilder: knitr

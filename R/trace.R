@@ -36,6 +36,24 @@ gguntrace_all <- function(...) {
 
 #' @rdname ggtrace
 #' @export
+ggtrace_mdtree <- function(..., repo = ggrepo()) {
+  ggtrace(
+    ...,
+    on_enter = quo(
+      ggtrace_tree_enter(
+        .debug,
+        space = "    ",
+        prefix = "- ",
+        output = !!function(...) cat(paste0(...), "\n"),
+        label = ggtrace_mdtree_labeller(!!repo)
+      )
+    ),
+    on_exit = quo(ggtrace_tree_exit(.debug))
+  )
+}
+
+#' @rdname ggtrace
+#' @export
 ggtrace_tree <- function(...) {
   ggtrace(
     ...,
@@ -54,11 +72,12 @@ ggtrace_stack <- function(...) {
 }
 
 ggtrace_stack_enter <- function(.debug) {
-  message("-- ", .debug$.fun, "()")
+  message("- ", rlang::as_label(.debug$.fun), "()")
   print(rlang::trace_back())
 }
 
-ggtrace_tree_enter <- function(.debug) {
+ggtrace_tree_enter <- function(.debug, space = "-", prefix = " ", output = message,
+                               label = rlang::as_label) {
   .trace <- .debug$.trace
   if("depth" %in% names(.trace)) {
     .trace$depth <- .trace$depth + 1
@@ -66,8 +85,8 @@ ggtrace_tree_enter <- function(.debug) {
     .trace$depth <- 1
   }
 
-  spaces <- paste0(rep("--", max(.trace$depth, 0)), collapse = "")
-  message(spaces, " ", .debug$.fun, "()")
+  spaces <- paste0(rep(space, max(.trace$depth - 1, 0)), collapse = "")
+  output(spaces, prefix, label(.debug$.fun))
 }
 
 ggtrace_tree_exit <- function(.debug) {
@@ -77,6 +96,22 @@ ggtrace_tree_exit <- function(.debug) {
     .trace$depth <- .trace$depth - 1
   } else {
     .trace$depth <- 0
+  }
+}
+
+ggtrace_mdtree_labeller <- function(.fun, repo = ggrepo()) {
+  force(repo)
+  function(.fun) {
+    ggtrace_mdtree_label(.fun, repo = repo)
+  }
+}
+
+ggtrace_mdtree_label <- function(.fun, repo = ggrepo()) {
+  url <- try(ggurl(!!.fun, repo = repo), silent = TRUE)
+  if(inherits(url, "try-error") || is.na(url)) {
+    rlang::as_label(.fun)
+  } else {
+    sprintf("[%s](%s)", rlang::as_label(.fun), url)
   }
 }
 
@@ -120,16 +155,6 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
 
   fun <- rlang::eval_tidy(fun_quo, data = getNamespace("ggplot2"))
 
-  # keep track of the function
-  # have to do it based on fun label because we do a lot of
-  # modifying of functions
-  hash <- digest::digest(fun_label)
-  if(action == "trace") {
-    current_traces[[hash]] <- fun_quo
-  } else if(hash %in% names(current_traces)) {
-    rm(list = hash, envir = current_traces)
-  }
-
   if (inherits(fun, "ggproto_method")) {
     wrapper_fun <- fun
     wrapper_env <- environment(wrapper_fun)
@@ -137,11 +162,14 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
     inner_fun <- wrapper_env$f
 
     wrapper_fun_name <- find_function_name(ggproto_object, inner_fun)
-    if(is.na(wrapper_fun_name)) stop("Could not resolve ggproto method name for ", fun_label)
+    if(is.na(wrapper_fun_name)) {
+      warning("Could not resolve ggproto method name for ", fun_label)
+      return(invisible(NULL))
+    }
 
     # apply on_enter and on_exit or remove
     if(action == "trace") {
-      new_fun <- traced_function(inner_fun, on_enter, on_exit, .fun = fun_label, .trace = .trace)
+      new_fun <- traced_function(inner_fun, on_enter, on_exit, .fun = fun_quo, .trace = .trace)
     } else {
       new_fun <- untraced_function(inner_fun)
     }
@@ -151,11 +179,14 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
   } else {
     function_env <- environment(fun)
     fun_name <- find_function_name(function_env, fun)
-    if(is.na(fun_name)) stop("Could not resolve function name for ", fun_label)
+    if(is.na(fun_name)) {
+      warning("Could not resolve function name for ", fun_label)
+      return(invisible(NULL))
+    }
 
     # apply on_enter and on_exit
     if(action == "trace") {
-      new_fun <- traced_function(fun, on_enter, on_exit, .fun = fun_label, .trace = .trace)
+      new_fun <- traced_function(fun, on_enter, on_exit, .fun = fun_quo, .trace = .trace)
     } else {
       new_fun <- untraced_function(fun)
     }
@@ -166,6 +197,16 @@ trace_and_register <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
     assign(fun_name, new_fun, envir = function_env)
     if(locked_env) lockBinding(fun_name, function_env)
   }
+
+  # keep track of the function
+  # have to do it based on fun label because we do a lot of
+  # modifying of functions
+  hash <- digest::digest(fun_label)
+  if(action == "trace") {
+    current_traces[[hash]] <- fun_quo
+  } else if(hash %in% names(current_traces)) {
+    rm(list = hash, envir = current_traces)
+  }
 }
 
 untrace_and_unregister <- function(fun) {
@@ -173,7 +214,7 @@ untrace_and_unregister <- function(fun) {
 }
 
 traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
-                            .fun = ".fun", .trace = new.env(parent = emptyenv())) {
+                            .fun = quo("fun"), .trace = new.env(parent = emptyenv())) {
   if(is_traced_function(fun)) {
     fun <- untraced_function(fun)
   }
@@ -189,22 +230,22 @@ traced_function <- function(fun, on_enter = quo(NULL), on_exit = quo(NULL),
 
   new_fun <- function_with_bracket(fun)
   fun_body <- body(new_fun)
-
-  length_body <- length(fun_body)
-  fun_body[[length_body + 1]] <- fun_body[[length_body]]
-  fun_body[[length_body + 2]] <- fun_body[[length_body]]
-  fun_body[3:(length_body + 1)] <- fun_body[2:length_body]
-  fun_body[[2]] <- substitute(
+  new_body <- vector("pairlist", length = length(fun_body) + 2)
+  new_body[[1]] <- fun_body[[1]]
+  new_body[[2]] <- substitute(
     rlang::eval_tidy(on_enter, data = create_mask()),
     enter_exit_env
   )
-  fun_body[[length_body + 1]] <- substitute(
+  new_body[[length(new_body) - 1]] <- substitute(
     on.exit(rlang::eval_tidy(on_exit, data = create_mask()), add = TRUE),
     enter_exit_env
   )
+  if(length(fun_body) > 2) {
+    new_body[3:(length(new_body) - 2)] <- fun_body[2:(length(fun_body) - 1)]
+  }
+  new_body[length(new_body)] <- fun_body[length(fun_body)]
 
-  body(new_fun) <- fun_body
-
+  body(new_fun) <- as.call(new_body)
   attr(new_fun, ".original_function") <- fun
   new_fun
 }

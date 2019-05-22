@@ -4,6 +4,7 @@
 \alias{ggtrace}
 \alias{gguntrace}
 \alias{gguntrace_all}
+\alias{ggtrace_mdtree}
 \alias{ggtrace_tree}
 \alias{ggtrace_stack}
 \title{Trace ggplot2 functions}
@@ -14,6 +15,8 @@ ggtrace(..., on_enter = quo(NULL), on_exit = quo(NULL),
 gguntrace(...)
 
 gguntrace_all(...)
+
+ggtrace_mdtree(..., repo = ggrepo())
 
 ggtrace_tree(...)
 

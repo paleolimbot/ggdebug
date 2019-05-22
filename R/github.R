@@ -84,7 +84,7 @@ ggpath <- function(path = "/") {
   if(!inherits(path_eval, "try-error") && is.character(path_eval)) {
     path_eval[1]
   } else {
-    obj <- find_ggplot_function(!!path)
+    obj <- untraced_function(find_ggplot_function(!!path))
     src <- srcref_as_tibble(attr(obj, "srcref"))
     file <- src$src_file
     if(is.na(file)) stop("Could not find file for object ", path_label)

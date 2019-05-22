@@ -34,6 +34,27 @@ ggmethods <- function(obj, ns = getNamespace("ggplot2"), ignore = "super", inclu
   }
 }
 
+#' @rdname ggmethods
+#' @export
+ggeverything <- function(ns = getNamespace("ggplot2"),
+                         ignore = c("$.ggproto", "make_proto_method", "[[.ggproto",
+                                    "fetch_ggproto", "[[[.ggproto",
+                                     "mean_cl_boot", "median_hilow", "annotation_id",
+                                     "mean_sdl", "mean_cl_normal")) {
+  objects <- lapply(names(ns), function(x) ns[[x]])
+  is_fun <- vapply(objects, is.function, logical(1))
+  is_ggproto <- vapply(objects, ggplot2::is.ggproto, logical(1))
+  include <- !(names(ns) %in% ignore)
+
+  name_to_quosure <- function(name) rlang::as_quosure(rlang::sym(name), env = ns)
+
+  funs_quos <- rlang::as_quosures(lapply(names(ns)[is_fun & include], name_to_quosure))
+  ggproto_quos <- lapply(names(ns)[is_ggproto& include], name_to_quosure)
+  methods_quos <- do.call(c, lapply(ggproto_quos, ggmethods, include_super = FALSE))
+
+  c(funs_quos, methods_quos)
+}
+
 find_ggplot_function <- function(fun, ns = getNamespace("ggplot2")) {
   fun <- rlang::eval_tidy(enquo(fun), data = ns)
   if (inherits(fun, "ggproto_method")) {

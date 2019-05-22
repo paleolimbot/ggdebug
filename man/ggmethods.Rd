@@ -2,10 +2,15 @@
 % Please edit documentation in R/utils.R
 \name{ggmethods}
 \alias{ggmethods}
+\alias{ggeverything}
 \title{Get all methods of a ggproto object}
 \usage{
 ggmethods(obj, ns = getNamespace("ggplot2"), ignore = "super",
   include_super = TRUE)
+
+ggeverything(ns = getNamespace("ggplot2"), ignore = c("$.ggproto",
+  "make_proto_method", "[[[.ggproto", "mean_cl_boot", "median_hillow",
+  "annotation_id", "mean_sdl", "mean_cl_normal"))
 }
 \arguments{
 \item{obj}{A ggplot2 ggproto object.}

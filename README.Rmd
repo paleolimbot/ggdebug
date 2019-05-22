@@ -1,5 +1,7 @@
 ---
-output: github_document
+output: 
+  github_document:
+    hard_line_breaks: false
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -48,6 +50,9 @@ ggdebug(ggplot, GeomPoint$draw_panel)
 # stop debugging functions
 ggundebug(ggplot)
 
+# use helpers to debug lots of functions
+ggdebug(!!!ggmethods(GeomPoint))
+
 # stop debugging all functions
 ggundebug_all()
 ```
@@ -64,17 +69,15 @@ You can also use this package to install specific versions of ggplot2 from GitHu
 
 Use `ggtrace()` (and family) to evaluate abitrary code as functions enter an exit. `ggtrace_tree()` and `ggtrace_stack()` are useful shortcut methods.
 
-```{r, fig.show='hide'}
+```{r trace-data, fig.show='hide'}
 ggtrace(FacetWrap$map_data, on_enter = quo(print(data)), on_exit = quo(print(data)))
 ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
 gguntrace(FacetWrap$map_data)
 ```
 
-
-```{r, fig.show='hide'}
-ggtrace_tree(
-  FacetWrap$map_data, 
-  FacetWrap$compute_layout,
+```{r trace-basic, results='asis', fig.show='hide'}
+ggtrace_mdtree(
+  !!!ggmethods(FacetWrap),
   combine_vars,
   eval_facets
 )
@@ -83,12 +86,40 @@ ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
 gguntrace_all()
 ```
 
-## Helpers
+## How it all comes together
 
-More than likely, you'd like to debug an entire ggproto class. For this you can use `ggmethods()` and the splice to debug many functions at once.
+Or sometimes, you need to debug all of ggplot2.
 
-```{r, fig.show='hide'}
-ggtrace_tree(!!!ggmethods(FacetWrap))
-ggplot(mpg, aes(cty, hwy)) + geom_point() + facet_wrap(vars(class))
+```{r tree-all, results='asis', fig.show='hide'}
+ggtrace_mdtree(
+  print.ggplot,
+  ggplot_build,
+  ggplot_gtable,
+  !!!ggmethods(GeomPoint),
+  !!!ggmethods(StatIdentity),
+  !!!ggmethods(Layer),
+  !!!ggmethods(Layout),
+  !!!ggmethods(CoordCartesian),
+  !!!ggmethods(FacetWrap),
+  !!!ggmethods(ScaleContinuousPosition),
+  !!!ggmethods(ScaleContinuous),
+  !!!ggmethods(ScaleDiscrete),
+  !!!ggmethods(RangeContinuous),
+  !!!ggmethods(RangeDiscrete),
+  geom_point,
+  ggplot.default,
+  aes,
+  facet_wrap,
+  layer,
+  guide_axis,
+  guides_build,
+  guides_train,
+  guides_gengrob
+)
+
+ggplot(mpg, aes(cty, hwy, col = class)) +
+  geom_point() +
+  facet_wrap(vars(drv))
+
 gguntrace_all()
 ```
