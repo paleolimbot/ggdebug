@@ -5,6 +5,7 @@
 \alias{ggrepo}
 \alias{ggurl}
 \alias{ggbrowse}
+\alias{ggrefer}
 \alias{ggpath}
 \alias{gginstall}
 \title{Information about the currently installed version of ggplot2}
@@ -16,6 +17,8 @@ ggrepo()
 ggurl(path = "/", repo = ggrepo())
 
 ggbrowse(path = "/", repo = ggrepo())
+
+ggrefer(path = "/", repo = ggrepo())
 
 ggpath(path = "/")
 

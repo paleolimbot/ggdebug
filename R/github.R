@@ -47,7 +47,8 @@ ggrepo <- function() {
     version <- info$ondiskversion
     stringr::str_c("cran/ggplot2@", version)
   } else if(stringr::str_detect(info$source, "^Github")) {
-    stringr::str_match(info$source, "\\(([^\\)]+)\\)")[, 2]
+    desc <- packageDescription("ggplot2")
+    paste0(desc$GithubUsername, "/", desc$GithubRepo, "@", desc$GithubSHA1)
   } else {
     NA_character_
   }
@@ -77,6 +78,20 @@ ggbrowse <- function(path = "/", repo = ggrepo()) {
 
 #' @rdname gginfo
 #' @export
+ggrefer <- function(path = "/", repo = ggrepo()) {
+  path <- enquo(path)
+  path_label <- rlang::as_label(path)
+  url <- ggurl(path = !!path, repo = repo)
+  if(is.na(url)) stop("Could not find URL for object ", path_label)
+  if(interactive()) {
+    clipr::write_clip(url)
+    message("URL copied to clipboard: '", url, "'")
+  }
+  invisible(url)
+}
+
+#' @rdname gginfo
+#' @export
 ggpath <- function(path = "/") {
   path <- enquo(path)
   path_label <- rlang::as_label(path)
@@ -87,7 +102,7 @@ ggpath <- function(path = "/") {
     obj <- untraced_function(find_ggplot_function(!!path))
     src <- srcref_as_tibble(attr(obj, "srcref"))
     file <- src$src_file
-    if(is.na(file)) stop("Could not find file for object ", path_label)
+    if(is.na(file)) return(NA_character_)
 
     dir <- stringr::str_remove(stringr::str_extract(src$src_file, "ggplot2/.*$"), "^ggplot2/")
     stringr::str_c(dir, "#L", src$src_line_start, "-L", src$src_line_end)

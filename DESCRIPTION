@@ -21,7 +21,8 @@ Imports:
     purrr,
     ggplot2,
     remotes,
-    stringr
+    stringr,
+    clipr
 Suggests: 
     roxygen2,
     knitr,
