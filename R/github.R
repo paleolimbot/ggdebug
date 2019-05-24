@@ -4,6 +4,7 @@
 #' @param include_base,dependencies See [sessioninfo::package_info()]
 #' @param path A path to a file within ggplot2
 #' @param repo A repository and reference, like `tidyverse/ggplot2` or `tidyverse/ggplot2@v3.1.1`.
+#' @param verbose Use TRUE to use a commit reference rather than a tag reference
 #' @param INSTALL_opts,... Options for install. Using --with-keep.source allows
 #'   the functions in this section to find the GitHub repo from whence
 #'   ggplot2 came.
@@ -32,7 +33,7 @@ gginfo <- function(include_base = FALSE, dependencies = FALSE) {
 
 #' @rdname gginfo
 #' @export
-ggrepo <- function() {
+ggrepo <- function(verbose = FALSE) {
   info <- gginfo(include_base = FALSE, dependencies = FALSE)
   if(info$source == "local") {
     local_r_dir <- dirname(srcref_as_tibble(attr(ggplot2::ggplot, "srcref"))$src_file)
@@ -45,7 +46,20 @@ ggrepo <- function() {
     stringr::str_c(repo_name, "@", repo_ref)
   } else if(stringr::str_detect(info$source, "^CRAN")) {
     version <- info$ondiskversion
-    stringr::str_c("cran/ggplot2@", version)
+    if(verbose) {
+      gh_info <- try(
+        gh::gh(paste0("/repos/tidyverse/ggplot2/git/refs/tags/v", version)),
+        silent = TRUE
+      )
+      if(!inherits(gh_info, "try-error")) {
+        sha <- gh_info$object$sha
+        if(!is.null(sha)) {
+          return(stringr::str_c("tidyverse/ggplot2@", sha))
+        }
+      }
+    }
+
+    stringr::str_c("tidyverse/ggplot2@v", version)
   } else if(stringr::str_detect(info$source, "^Github")) {
     desc <- packageDescription("ggplot2")
     paste0(desc$GithubUsername, "/", desc$GithubRepo, "@", desc$GithubSHA1)
@@ -58,6 +72,8 @@ ggrepo <- function() {
 #' @export
 ggurl <- function(path = "/", repo = ggrepo()) {
   path <- ggpath(!!enquo(path))
+  if(is.na(path)) return(NA_character_)
+
   repo <- repo_split(repo)
   is_directory <- stringr::str_ends(path, "/")
   url_type <- if(is_directory) "tree" else "blob"
@@ -78,7 +94,7 @@ ggbrowse <- function(path = "/", repo = ggrepo()) {
 
 #' @rdname gginfo
 #' @export
-ggrefer <- function(path = "/", repo = ggrepo()) {
+ggrefer <- function(path = "/", repo = ggrepo(verbose = TRUE)) {
   path <- enquo(path)
   path_label <- rlang::as_label(path)
   url <- ggurl(path = !!path, repo = repo)
@@ -117,6 +133,12 @@ gginstall <- function(repo = "tidyverse/ggplot2", ..., INSTALL_opts = "--with-ke
     ...,
     INSTALL_opts = INSTALL_opts
   )
+}
+
+#' @rdname gginfo
+#' @export
+gginstall_cran <- function(..., INSTALL_opts = "--with-keep.source") {
+  install.packages("ggplot2", type = "source", ..., INSTALL_opts = INSTALL_opts)
 }
 
 repo_split <- function(repo) {

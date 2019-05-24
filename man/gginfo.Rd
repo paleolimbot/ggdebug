@@ -8,25 +8,30 @@
 \alias{ggrefer}
 \alias{ggpath}
 \alias{gginstall}
+\alias{gginstall_cran}
 \title{Information about the currently installed version of ggplot2}
 \usage{
 gginfo(include_base = FALSE, dependencies = FALSE)
 
-ggrepo()
+ggrepo(verbose = FALSE)
 
 ggurl(path = "/", repo = ggrepo())
 
 ggbrowse(path = "/", repo = ggrepo())
 
-ggrefer(path = "/", repo = ggrepo())
+ggrefer(path = "/", repo = ggrepo(verbose = TRUE))
 
 ggpath(path = "/")
 
 gginstall(repo = "tidyverse/ggplot2", ...,
   INSTALL_opts = "--with-keep.source")
+
+gginstall_cran(..., INSTALL_opts = "--with-keep.source")
 }
 \arguments{
 \item{include_base, dependencies}{See \code{\link[sessioninfo:package_info]{sessioninfo::package_info()}}}
+
+\item{verbose}{Use TRUE to use a commit reference rather than a tag reference}
 
 \item{path}{A path to a file within ggplot2}
 
