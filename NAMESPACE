@@ -2,6 +2,7 @@
 
 export("!!")
 export(ggbrowse)
+export(ggcheckout)
 export(ggdebug)
 export(ggdebug_one)
 export(ggeverything)
