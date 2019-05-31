@@ -4,6 +4,7 @@
 #' @param obj A ggplot2 ggproto object.
 #' @param ignore Method names to ignore
 #' @param include_super Follow superclass ggproto objects
+#' @param ns Namespace from which objects should be sourced
 #'
 #' @return A quosures that can be spliced (`!!!`) into [ggdebug()] or [ggtrace()]
 #' @export

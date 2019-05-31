@@ -61,7 +61,7 @@ ggrepo <- function(verbose = FALSE) {
 
     stringr::str_c("tidyverse/ggplot2@v", version)
   } else if(stringr::str_detect(info$source, "^Github")) {
-    desc <- packageDescription("ggplot2")
+    desc <- utils::packageDescription("ggplot2")
     paste0(desc$GithubUsername, "/", desc$GithubRepo, "@", desc$GithubSHA1)
   } else {
     NA_character_
@@ -138,7 +138,7 @@ gginstall <- function(repo = "tidyverse/ggplot2", ..., INSTALL_opts = "--with-ke
 #' @rdname gginfo
 #' @export
 gginstall_cran <- function(..., INSTALL_opts = "--with-keep.source") {
-  install.packages("ggplot2", type = "source", ..., INSTALL_opts = INSTALL_opts)
+  utils::install.packages("ggplot2", type = "source", ..., INSTALL_opts = INSTALL_opts)
 }
 
 repo_split <- function(repo) {

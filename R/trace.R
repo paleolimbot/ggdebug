@@ -9,6 +9,7 @@
 #'
 #' @inheritParams ggtrace_one
 #' @param ... One or more functions or [ggplot2::ggproto()] methods (see [ggtrace_one()])
+#' @param repo Repository to link to for markdown tracing
 #'
 #' @export
 #' @importFrom rlang !! quo
@@ -285,3 +286,6 @@ function_with_bracket <- function(fun) {
   }
   fun
 }
+
+# suppress warning for the debug pronoun
+utils::globalVariables(".debug")

@@ -16,6 +16,8 @@ ggeverything(ns = getNamespace("ggplot2"), ignore = c("$.ggproto",
 \arguments{
 \item{obj}{A ggplot2 ggproto object.}
 
+\item{ns}{Namespace from which objects should be sourced}
+
 \item{ignore}{Method names to ignore}
 
 \item{include_super}{Follow superclass ggproto objects}

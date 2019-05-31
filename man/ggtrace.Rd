@@ -30,6 +30,8 @@ ggtrace_stack(...)
 \item{on_exit}{A \code{\link[rlang:quo]{rlang::quo()}} to evaluate on exiting the \code{fun}.}
 
 \item{.trace}{An environment that will be available to \code{on_enter} and \code{on_exit} as \code{.trace}.}
+
+\item{repo}{Repository to link to for markdown tracing}
 }
 \description{
 Traces functions or \code{\link[ggplot2:ggproto]{ggplot2::ggproto()}} methods in ggplot2. Expressions are
