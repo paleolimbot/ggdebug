@@ -26,8 +26,8 @@ ggcheckout <- function(repo = "tidyverse/ggplot2", path = tempfile(), ignore = c
     if(!dir.exists(path)) {
       dir.create(path)
     } else {
-      current_files <- fs::dir_ls(path, type = "file", all = TRUE, recursive = TRUE)
-      current_dirs <- fs::dir_ls(path, type = "directory", recursive = TRUE)
+      current_files <- fs::dir_ls(path, type = "file", all = TRUE, recurse = TRUE)
+      current_dirs <- fs::dir_ls(path, type = "directory", recurse = TRUE)
 
       if(length(current_files) > 2000) {
         stop("Won't do a directory replace with a dir that contains more than 2,000 files")
