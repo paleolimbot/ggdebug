@@ -29,7 +29,10 @@ Imports:
 Suggests: 
     roxygen2,
     knitr,
-    rmarkdown
+    rmarkdown,
+    tidyr,
+    sf,
+    bench
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/paleolimbot/ggdebug
