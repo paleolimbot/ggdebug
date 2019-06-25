@@ -19,20 +19,31 @@ ggbench <- function(exprs = ggbench_standards(1), ..., device = withr::with_png,
                     filename = tempfile(fileext = "Rplot%03d")) {
   # for the time being, assume all the expressions have the same env
   env <- rlang::get_env(exprs[[1]])
+  exprs <- rlang::quos_auto_name(exprs)
+  names <- names(exprs)
 
   expr_spec <- purrr::map(exprs, rlang::get_expr)
   spec <- bench::mark(exprs = expr_spec,  ..., check = FALSE, env = env)
   spec$stage <- "spec"
 
-  expr_build <- purrr::map(expr_spec, function(expr) rlang::call2("ggplot_build", expr, .ns = "ggplot2"))
-  build <- bench::mark(exprs = expr_build, ..., check = FALSE, env = env)
+  expr_build <- purrr::map(
+    purrr::set_names(spec$result, names),
+    function(p) rlang::call2("ggplot_build", p, .ns = "ggplot2")
+  )
+  build <- bench::mark(exprs = expr_build, ..., check = FALSE)
   build$stage <- "build"
 
-  expr_draw <- purrr::map(expr_build, function(expr) rlang::call2("ggplot_gtable", expr, .ns = "ggplot2"))
+  expr_draw <- purrr::map(
+    purrr::set_names(build$result, names),
+    function(p) rlang::call2("ggplot_gtable", p, .ns = "ggplot2")
+  )
   draw <- bench::mark(exprs = expr_draw, ..., check = FALSE, env = env)
   draw$stage <- "draw"
 
-  expr_render <- purrr::map(expr_draw, function(expr) rlang::call2("grid.draw", expr, .ns = "grid"))
+  expr_render <- purrr::map(
+    purrr::set_names(draw$result, names),
+    function(p) rlang::call2("grid.draw", p, .ns = "grid")
+  )
   expr_dev <- purrr::map(expr_render, function(expr) rlang::call2(device, filename, expr))
   render <- bench::mark(exprs = expr_dev, ..., check = FALSE, env = env)
   render$stage <- "render"
